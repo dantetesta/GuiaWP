@@ -161,16 +161,26 @@ class GCEP_Helpers {
 		global $wpdb;
 
 		$wpdb->query(
-			"UPDATE {$wpdb->posts} p
-			LEFT JOIN {$wpdb->postmeta} pm
-				ON p.ID = pm.post_id
-				AND pm.meta_key = 'GCEP_status_anuncio'
-			SET p.post_status = CASE
-				WHEN pm.meta_value = 'publicado' THEN 'publish'
-				ELSE 'draft'
-			END
-			WHERE p.post_type = 'gcep_anuncio'
-			AND p.post_status NOT IN ('trash', 'auto-draft', 'inherit')"
+			$wpdb->prepare(
+				"UPDATE {$wpdb->posts} p
+				LEFT JOIN {$wpdb->postmeta} pm
+					ON p.ID = pm.post_id
+					AND pm.meta_key = %s
+				SET p.post_status = CASE
+					WHEN pm.meta_value = %s THEN %s
+					ELSE %s
+				END
+				WHERE p.post_type = %s
+				AND p.post_status NOT IN (%s, %s, %s)",
+				'GCEP_status_anuncio',
+				'publicado',
+				'publish',
+				'draft',
+				'gcep_anuncio',
+				'trash',
+				'auto-draft',
+				'inherit'
+			)
 		);
 	}
 

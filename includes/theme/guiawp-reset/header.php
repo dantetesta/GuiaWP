@@ -5,7 +5,7 @@
  * @package GuiaWP_Reset
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.0.0 - 2026-03-11
- * @modified 1.9.5 - 2026-03-21 - Touch target menu mobile w-10→w-11 (44px minimo)
+ * @modified 1.9.6 - 2026-03-22 - Corrige cores hardcoded: substitui #0052cc por variável --gcep-color-primary
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -60,7 +60,7 @@ $blog_url      = home_url( '/blog' );
 						<?php esc_html_e( 'Admin', 'guiawp-reset' ); ?>
 					</a>
 				<?php endif; ?>
-				<a href="<?php echo esc_url( home_url( '/painel' ) ); ?>" class="bg-[#0052cc] text-white text-xs md:text-sm font-bold px-3 md:px-6 py-2 md:py-2.5 rounded-lg hover:bg-[#003d99] hover:shadow-lg transition-all inline-flex items-center gap-2">
+				<a href="<?php echo esc_url( home_url( '/painel' ) ); ?>" class="text-white text-xs md:text-sm font-bold px-3 md:px-6 py-2 md:py-2.5 rounded-lg transition-all inline-flex items-center gap-2" style="background-color:var(--gcep-color-primary, #0052cc);" onmouseover="this.style.filter='brightness(0.9)';this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.filter='brightness(1)';this.style.boxShadow='none';">
 					<span class="material-symbols-outlined text-[18px]">dashboard</span>
 					<span class="md:hidden"><?php esc_html_e( 'Painel', 'guiawp-reset' ); ?></span>
 					<span class="hidden md:inline"><?php esc_html_e( 'Meu Painel', 'guiawp-reset' ); ?></span>
@@ -70,7 +70,7 @@ $blog_url      = home_url( '/blog' );
 				</a>
 			<?php else : ?>
 				<a href="<?php echo esc_url( home_url( '/login' ) ); ?>" class="hidden sm:inline-flex text-sm font-semibold px-4 py-2 hover:bg-slate-100 rounded-lg transition-all"><?php esc_html_e( 'Entrar', 'guiawp-reset' ); ?></a>
-				<a href="<?php echo esc_url( home_url( '/cadastro' ) ); ?>" class="bg-[#0052cc] text-white text-xs md:text-sm font-bold px-4 md:px-6 py-2 md:py-2.5 rounded-lg hover:bg-[#003d99] hover:shadow-lg transition-all"><?php esc_html_e( 'Quero Anunciar', 'guiawp-reset' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/cadastro' ) ); ?>" class="text-white text-xs md:text-sm font-bold px-4 md:px-6 py-2 md:py-2.5 rounded-lg transition-all" style="background-color:var(--gcep-color-primary, #0052cc);" onmouseover="this.style.filter='brightness(0.9)';this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.filter='brightness(1)';this.style.boxShadow='none';"><?php esc_html_e( 'Quero Anunciar', 'guiawp-reset' ); ?></a>
 			<?php endif; ?>
 			<button type="button" id="gcep-theme-menu-toggle" class="md:hidden w-11 h-11 inline-flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors" aria-label="<?php esc_attr_e( 'Abrir menu', 'guiawp-reset' ); ?>">
 				<span class="material-symbols-outlined text-2xl">menu</span>
@@ -117,7 +117,7 @@ $blog_url      = home_url( '/blog' );
 					<?php esc_html_e( 'Painel Admin', 'guiawp-reset' ); ?>
 				</a>
 			<?php endif; ?>
-			<a href="<?php echo esc_url( home_url( '/painel' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#0052cc] text-white text-sm font-bold hover:shadow-lg transition-all">
+			<a href="<?php echo esc_url( home_url( '/painel' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-bold transition-all" style="background-color:var(--gcep-color-primary, #0052cc);" onmouseover="this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.boxShadow='none';">
 				<span class="material-symbols-outlined text-[18px]">dashboard</span>
 				<?php esc_html_e( 'Painel', 'guiawp-reset' ); ?>
 			</a>
@@ -129,7 +129,7 @@ $blog_url      = home_url( '/blog' );
 			<a href="<?php echo esc_url( home_url( '/login' ) ); ?>" class="block w-full text-center px-4 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
 				<?php esc_html_e( 'Entrar', 'guiawp-reset' ); ?>
 			</a>
-			<a href="<?php echo esc_url( home_url( '/cadastro' ) ); ?>" class="block w-full text-center px-4 py-3 rounded-xl bg-[#0052cc] text-white text-sm font-bold hover:shadow-lg transition-all">
+			<a href="<?php echo esc_url( home_url( '/cadastro' ) ); ?>" class="block w-full text-center px-4 py-3 rounded-xl text-white text-sm font-bold transition-all" style="background-color:var(--gcep-color-primary, #0052cc);" onmouseover="this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';" onmouseout="this.style.boxShadow='none';">
 				<?php esc_html_e( 'Quero Anunciar', 'guiawp-reset' ); ?>
 			</a>
 		<?php endif; ?>

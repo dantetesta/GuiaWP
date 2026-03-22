@@ -53,12 +53,13 @@ class GCEP_Plans {
 
 		self::ensure_table();
 
-		$where = '';
 		if ( $status ) {
-			$where = $wpdb->prepare( ' WHERE status = %s', $status );
+			$query = $wpdb->prepare( "SELECT * FROM $table WHERE status = %s ORDER BY sort_order ASC, id ASC", $status );
+		} else {
+			$query = "SELECT * FROM $table ORDER BY sort_order ASC, id ASC";
 		}
 
-		return $wpdb->get_results( "SELECT * FROM $table $where ORDER BY sort_order ASC, id ASC", ARRAY_A ) ?: [];
+		return $wpdb->get_results( $query, ARRAY_A ) ?: [];
 	}
 
 	public static function get_active(): array {

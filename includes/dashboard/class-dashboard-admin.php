@@ -6,6 +6,7 @@
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.0.0 - 2026-03-11
  * @modified 1.2.0 - 2026-03-11 - CRUD categorias via AJAX, upload logotipo
+ * @modified 1.10.0 - 2026-03-22 - Correcao: sincronizacao array $allowed com $defaults
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -99,25 +100,47 @@ class GCEP_Dashboard_Admin {
 	public function handle_save_settings(): void {
 		$this->verify_admin_action( 'gcep_save_settings' );
 		$allowed = [
+			// Informacoes basicas
 			'nome_guia', 'telefone_principal', 'email_principal', 'whatsapp_principal',
-			'instagram_url', 'facebook_url', 'x_url', 'logo_largura',
+			// Redes sociais
+			'instagram_url', 'facebook_url', 'x_url',
+			// Logotipo e favicon
+			'logo_url', 'logo_attachment_id', 'logo_largura', 'favicon_url',
+			// Cores primarias
 			'cor_primaria', 'cor_secundaria', 'cor_destaque', 'cor_fundo', 'cor_texto',
+			// Cores do rodape
 			'cor_rodape', 'cor_rodape_cor2', 'cor_rodape_tipo', 'cor_rodape_direcao', 'cor_rodape_opacidade',
 			'cor_rodape_titulo', 'cor_rodape_texto', 'cor_rodape_link', 'cor_rodape_link_hover',
 			'cor_fundo_categorias',
+			// Estilos gerais
+			'borda_raio',
+			// Autenticacao
 			'auth_captcha_provider', 'auth_google_site_key', 'auth_google_secret_key',
 			'auth_google_min_score', 'auth_turnstile_site_key', 'auth_turnstile_secret_key',
+			// Pagamento e PIX
 			'chave_pix', 'nome_recebedor', 'cidade_recebedor', 'link_pagamento',
 			'texto_instrucoes_pagamento', 'whatsapp_comprovante', 'prazo_aprovacao_horas',
-			'hero_titulo', 'hero_subtitulo',
+			// Hero section
+			'hero_titulo', 'hero_subtitulo', 'hero_imagem', 'hero_imagem_id',
 			'hero_overlay_cor1', 'hero_overlay_cor2', 'hero_overlay_direcao',
 			'hero_overlay_opacidade1', 'hero_overlay_opacidade2',
+			// CTA section
+			'cta_imagem', 'cta_imagem_id',
+			// Banner e premiums
+			'banner_principal', 'texto_premium', 'imagem_premium',
+			// IA
 			'ia_provider', 'ia_auto_approve', 'ia_prompt',
+			// OpenAI
 			'openai_api_key', 'openai_auto_approve', 'openai_model', 'openai_prompt',
+			// Groq
 			'groq_api_key', 'groq_model',
+			// Gemini Imagen
 			'gemini_imagen_api_key',
+			// Mercado Pago
 			'mercadopago_access_token', 'mercadopago_public_key', 'mercadopago_webhook_secret',
+			// Pagou
 			'pagou_api_key', 'gateway_ativo',
+			// AdSense
 			'adsense_enabled', 'adsense_script', 'adsense_in_article', 'adsense_intervalo_palavras',
 		];
 		// Campos que aceitam HTML (scripts do AdSense)

@@ -12,6 +12,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Converte cor hexadecimal para rgba (opacidade de 0 a 1)
+function gcep_hex_to_rgba( $hex, $alpha = 1 ) {
+	$hex = ltrim( $hex, '#' );
+	if ( strlen( $hex ) === 3 ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+	$r = hexdec( substr( $hex, 0, 2 ) );
+	$g = hexdec( substr( $hex, 2, 2 ) );
+	$b = hexdec( substr( $hex, 4, 2 ) );
+	return 'rgba(' . $r . ',' . $g . ',' . $b . ',' . floatval( $alpha ) . ')';
+}
+
 function guiawp_reset_setup() {
 	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' );

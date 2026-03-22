@@ -11,6 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! current_user_can( 'manage_options' ) ) {
+	return;
+}
+
 if ( ! GCEP_Gemini_Imagen::has_api_key() ) {
 	return;
 }

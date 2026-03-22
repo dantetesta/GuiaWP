@@ -111,15 +111,19 @@ $ft_txt   = guiawp_reset_get_setting( 'cor_rodape_texto', '#94a3b8' );
 $ft_lnk   = guiawp_reset_get_setting( 'cor_rodape_link', '#cbd5e1' );
 $ft_lnkh  = guiawp_reset_get_setting( 'cor_rodape_link_hover', '#ffffff' );
 
+// Converte hex para rgba com opacidade aplicada apenas ao fundo
+$ft_rgba1 = gcep_hex_to_rgba( $ft_cor1, $ft_opac );
+$ft_rgba2 = gcep_hex_to_rgba( $ft_cor2, $ft_opac );
+
 if ( 'gradiente' === $ft_tipo ) {
-	$ft_bg = 'linear-gradient(' . esc_attr( $ft_dir ) . ',' . esc_attr( $ft_cor1 ) . ',' . esc_attr( $ft_cor2 ) . ')';
+	$ft_bg = 'linear-gradient(' . esc_attr( $ft_dir ) . ',' . $ft_rgba1 . ',' . $ft_rgba2 . ')';
 } else {
-	$ft_bg = esc_attr( $ft_cor1 );
+	$ft_bg = $ft_rgba1;
 }
 ?>
 </div><!-- .pt-16/20 -->
 
-<footer class="border-t pt-12 md:pt-20 pb-8 md:pb-10" style="background:<?php echo $ft_bg; ?>;opacity:<?php echo esc_attr( $ft_opac ); ?>">
+<footer class="border-t pt-12 md:pt-20 pb-8 md:pb-10" style="background:<?php echo esc_attr( $ft_bg ); ?>">
 	<div class="max-w-7xl mx-auto px-4 sm:px-6">
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-12 md:mb-20">
 			<div class="md:col-span-2 lg:col-span-2">
