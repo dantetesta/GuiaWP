@@ -99,7 +99,7 @@ if ( '' !== $x_url ) {
 		'external' => true,
 	];
 }
-<?php
+
 // Cores do rodapé
 $ft_tipo  = guiawp_reset_get_setting( 'cor_rodape_tipo', 'solido' );
 $ft_cor1  = guiawp_reset_get_setting( 'cor_rodape', '#1e293b' );
