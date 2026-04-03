@@ -8,6 +8,7 @@
  * @modified 1.1.0 - 2026-03-11 - Adicionados scripts ViaCEP e formulário de anúncio
  * @modified 1.8.0 - 2026-03-20 - REQUEST_URI usa apenas path (sem query string); gcep-crop.js removido de /categorias (usa crop próprio)
  * @modified 1.9.8 - 2026-03-21 - Integração intl-tel-input CDN para campos telefone/WhatsApp com bandeiras DDI
+ * @modified 2.1.0 - 2026-03-29 - Adicionado gcep-focus-trap.js para acessibilidade (focus trap e Escape em modais/menus)
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,6 +30,15 @@ class GCEP_Assets {
 			GCEP_PLUGIN_URL . 'assets/css/frontend.css',
 			[ 'gcep-tailwind' ],
 			GCEP_VERSION
+		);
+
+		// Focus trap — acessibilidade para modais/menus (carregado antes de todos)
+		wp_enqueue_script(
+			'gcep-focus-trap',
+			GCEP_PLUGIN_URL . 'assets/js/gcep-focus-trap.js',
+			[],
+			GCEP_VERSION,
+			true
 		);
 
 		// Toast global — carregado antes de todos os outros scripts

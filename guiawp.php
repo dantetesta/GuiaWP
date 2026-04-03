@@ -3,7 +3,7 @@
  * Plugin Name: GuiaWP
  * Plugin URI: https://dantetesta.com.br
  * Description: Guia comercial de empresas e profissionais liberais com dashboards externos, planos grátis e premium.
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Dante Testa
  * Author URI: https://dantetesta.com.br
  * Text Domain: guiawp
@@ -79,7 +79,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'GCEP_VERSION', '2.0.0' );
+define( 'GCEP_VERSION', '2.1.0' );
 define( 'GCEP_PLUGIN_FILE', __FILE__ );
 define( 'GCEP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'GCEP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

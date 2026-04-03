@@ -102,8 +102,8 @@ class GCEP_Dashboard_Advertiser {
 				GCEP_Helpers::redirect_with_message( home_url( '/painel/perfil' ), 'error', __( 'A confirmação da senha não confere.', 'guiawp' ) );
 			}
 
-			if ( strlen( $nova_senha ) < 6 ) {
-				GCEP_Helpers::redirect_with_message( home_url( '/painel/perfil' ), 'error', __( 'A nova senha deve ter pelo menos 6 caracteres.', 'guiawp' ) );
+			if ( strlen( $nova_senha ) < 8 ) {
+				GCEP_Helpers::redirect_with_message( home_url( '/painel/perfil' ), 'error', __( 'A nova senha deve ter pelo menos 8 caracteres.', 'guiawp' ) );
 			}
 		}
 
@@ -150,8 +150,14 @@ class GCEP_Dashboard_Advertiser {
 		$user_id = get_current_user_id();
 
 		$allowed = [ 'image/jpeg', 'image/png', 'image/webp', 'image/gif' ];
-		if ( ! in_array( $file['type'], $allowed, true ) ) {
-			wp_send_json_error( [ 'message' => __( 'Formato invalido. Use JPG, PNG, WebP ou GIF.', 'guiawp' ) ] );
+
+		// Verificar MIME real via finfo (server-side, não confia no header do cliente)
+		$finfo     = finfo_open( FILEINFO_MIME_TYPE );
+		$real_mime = finfo_file( $finfo, $file['tmp_name'] );
+		finfo_close( $finfo );
+
+		if ( ! in_array( $real_mime, $allowed, true ) ) {
+			wp_send_json_error( [ 'message' => __( 'Formato inválido. Use JPG, PNG, WebP ou GIF.', 'guiawp' ) ] );
 		}
 
 		if ( $file['size'] > 5 * 1024 * 1024 ) {

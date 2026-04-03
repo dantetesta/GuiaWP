@@ -107,8 +107,8 @@ class GCEP_Auth_Handler {
 			GCEP_Helpers::redirect_with_message( home_url( '/cadastro' ), 'error', __( 'Este e-mail já está cadastrado.', 'guiawp' ) );
 		}
 
-		if ( strlen( $senha ) < 6 ) {
-			GCEP_Helpers::redirect_with_message( home_url( '/cadastro' ), 'error', __( 'A senha deve ter pelo menos 6 caracteres.', 'guiawp' ) );
+		if ( strlen( $senha ) < 8 ) {
+			GCEP_Helpers::redirect_with_message( home_url( '/cadastro' ), 'error', __( 'A senha deve ter pelo menos 8 caracteres.', 'guiawp' ) );
 		}
 
 		$captcha_check = GCEP_Auth_Captcha::verify_request( 'register', $_POST );
@@ -182,6 +182,12 @@ class GCEP_Auth_Handler {
 	}
 
 	public function handle_logout(): void {
+		if ( ! isset( $_POST['gcep_logout_nonce'] ) || ! wp_verify_nonce( $_POST['gcep_logout_nonce'], 'gcep_logout' ) ) {
+			// Fallback GET com nonce na URL (links de logout)
+			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'gcep_logout' ) ) {
+				wp_die( __( 'Erro de segurança.', 'guiawp' ) );
+			}
+		}
 		wp_logout();
 		wp_safe_redirect( home_url() );
 		exit;

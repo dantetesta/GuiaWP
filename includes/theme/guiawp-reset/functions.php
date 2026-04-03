@@ -6,6 +6,7 @@
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.0.0 - 2026-03-11
  * @modified 1.9.5 - 2026-03-21 - Versao null→1.0.0 no enqueue Google Fonts e Material Icons para cache busting
+ * @modified 1.10.0 - 2026-03-28 - Schema.org aprimorado: sameAs social, geo, BreadcrumbList, WebSite
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -178,6 +179,15 @@ function guiawp_reset_get_meta_description(): string {
 		return __( 'Encontre empresas, profissionais e servicos locais com filtros por categoria, localizacao e destaque.', 'guiawp-reset' );
 	}
 
+	if ( is_tax( 'gcep_categoria' ) ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term && ! empty( $term->description ) ) {
+			return wp_trim_words( $term->description, 25 );
+		}
+		$nome_guia = guiawp_reset_get_setting( 'nome_guia', 'GuiaWP' );
+		return sprintf( __( 'Encontre profissionais e empresas na categoria %s no %s.', 'guiawp-reset' ), $term->name, $nome_guia );
+	}
+
 	$request_path = trim( (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ), PHP_URL_PATH ), '/' );
 	if ( 'blog' === $request_path || 0 === strpos( $request_path, 'blog/' ) ) {
 		return __( 'Conteudo editorial com dicas, tendencias e estrategias para negocios locais e profissionais.', 'guiawp-reset' );
@@ -238,7 +248,7 @@ function guiawp_reset_output_seo_meta(): void {
 	$url         = guiawp_reset_get_current_url();
 	$image       = guiawp_reset_get_social_image();
 	$robots      = guiawp_reset_get_robots_content();
-	$type        = is_singular( 'post' ) ? 'article' : 'website';
+	$type        = is_singular( 'post' ) ? 'article' : ( is_singular( 'gcep_anuncio' ) ? 'business.business' : 'website' );
 
 	if ( '' !== $description ) {
 		echo '<meta name="description" content="' . esc_attr( $description ) . '">' . "\n";
@@ -314,9 +324,17 @@ function guiawp_reset_output_schema(): void {
 			$schema['email'] = $email;
 		}
 
-		$site = (string) get_post_meta( $post_id, 'GCEP_site', true );
-		if ( '' !== $site ) {
-			$schema['sameAs'] = array_values( array_filter( [ $site ] ) );
+		$same_as = array_filter( [
+			get_post_meta( $post_id, 'GCEP_site', true ),
+			get_post_meta( $post_id, 'GCEP_instagram', true ) ? 'https://instagram.com/' . ltrim( get_post_meta( $post_id, 'GCEP_instagram', true ), '@' ) : '',
+			get_post_meta( $post_id, 'GCEP_facebook', true ),
+			get_post_meta( $post_id, 'GCEP_linkedin', true ),
+			get_post_meta( $post_id, 'GCEP_youtube', true ),
+			get_post_meta( $post_id, 'GCEP_x_twitter', true ) ? 'https://x.com/' . ltrim( get_post_meta( $post_id, 'GCEP_x_twitter', true ), '@' ) : '',
+			get_post_meta( $post_id, 'GCEP_tiktok', true ) ? 'https://tiktok.com/@' . ltrim( get_post_meta( $post_id, 'GCEP_tiktok', true ), '@' ) : '',
+		] );
+		if ( ! empty( $same_as ) ) {
+			$schema['sameAs'] = array_values( $same_as );
 		}
 
 		$address = [
@@ -338,7 +356,44 @@ function guiawp_reset_output_schema(): void {
 			$schema['address'] = $address;
 		}
 
+		// Coordenadas geográficas
+		$lat = get_post_meta( $post_id, 'GCEP_latitude', true );
+		$lng = get_post_meta( $post_id, 'GCEP_longitude', true );
+		if ( $lat && $lng ) {
+			$schema['geo'] = [
+				'@type'     => 'GeoCoordinates',
+				'latitude'  => (float) $lat,
+				'longitude' => (float) $lng,
+			];
+		}
+
 		echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+
+		// BreadcrumbList para single anuncio
+		$breadcrumb = [
+			'@context' => 'https://schema.org',
+			'@type'    => 'BreadcrumbList',
+			'itemListElement' => [
+				[
+					'@type'    => 'ListItem',
+					'position' => 1,
+					'name'     => __( 'Início', 'guiawp-reset' ),
+					'item'     => home_url(),
+				],
+				[
+					'@type'    => 'ListItem',
+					'position' => 2,
+					'name'     => __( 'Anúncios', 'guiawp-reset' ),
+					'item'     => get_post_type_archive_link( 'gcep_anuncio' ),
+				],
+				[
+					'@type'    => 'ListItem',
+					'position' => 3,
+					'name'     => get_the_title(),
+				],
+			],
+		];
+		echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
 		return;
 	}
 
@@ -373,6 +428,76 @@ function guiawp_reset_output_schema(): void {
 		}
 
 		echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+	}
+
+	// BreadcrumbList para arquivo de anuncios
+	if ( is_post_type_archive( 'gcep_anuncio' ) ) {
+		$breadcrumb = [
+			'@context' => 'https://schema.org',
+			'@type'    => 'BreadcrumbList',
+			'itemListElement' => [
+				[
+					'@type'    => 'ListItem',
+					'position' => 1,
+					'name'     => __( 'Início', 'guiawp-reset' ),
+					'item'     => home_url(),
+				],
+				[
+					'@type'    => 'ListItem',
+					'position' => 2,
+					'name'     => __( 'Anúncios', 'guiawp-reset' ),
+				],
+			],
+		];
+		echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+	}
+
+	// BreadcrumbList para taxonomia de categoria
+	if ( is_tax( 'gcep_categoria' ) ) {
+		$term = get_queried_object();
+		$breadcrumb = [
+			'@context' => 'https://schema.org',
+			'@type'    => 'BreadcrumbList',
+			'itemListElement' => [
+				[
+					'@type'    => 'ListItem',
+					'position' => 1,
+					'name'     => __( 'Início', 'guiawp-reset' ),
+					'item'     => home_url(),
+				],
+				[
+					'@type'    => 'ListItem',
+					'position' => 2,
+					'name'     => __( 'Anúncios', 'guiawp-reset' ),
+					'item'     => get_post_type_archive_link( 'gcep_anuncio' ),
+				],
+				[
+					'@type'    => 'ListItem',
+					'position' => 3,
+					'name'     => $term->name,
+				],
+			],
+		];
+		echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+	}
+
+	// WebSite schema na pagina inicial com SearchAction
+	if ( is_front_page() ) {
+		$website = [
+			'@context' => 'https://schema.org',
+			'@type'    => 'WebSite',
+			'name'     => guiawp_reset_get_setting( 'nome_guia', get_bloginfo( 'name' ) ),
+			'url'      => home_url(),
+			'potentialAction' => [
+				'@type'       => 'SearchAction',
+				'target'      => [
+					'@type'        => 'EntryPoint',
+					'urlTemplate'  => get_post_type_archive_link( 'gcep_anuncio' ) . '?s={search_term_string}',
+				],
+				'query-input' => 'required name=search_term_string',
+			],
+		];
+		echo '<script type="application/ld+json">' . wp_json_encode( $website, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
 	}
 }
 add_action( 'wp_head', 'guiawp_reset_output_schema', 20 );

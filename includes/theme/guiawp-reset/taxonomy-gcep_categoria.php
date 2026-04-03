@@ -5,7 +5,8 @@
  * @package GuiaWP_Reset
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.8.3 - 2026-03-20
- * @modified 1.8.5 - 2026-03-20 - Filtros por título/cidade/estado e ordenação por título/data/visitas
+ * @modified 1.8.5 - 2026-03-20 - Filtros por titulo/cidade/estado e ordenacao por titulo/data/visitas
+ * @modified 2.1.0 - 2026-03-28 - Cards extraidos para partial reutilizavel (partials/card-anuncio.php)
  */
 
 get_header();
@@ -195,49 +196,10 @@ $order_labels = [
 	<?php if ( $query->have_posts() ) : ?>
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
 		<?php while ( $query->have_posts() ) : $query->the_post();
-			$plano     = get_post_meta( get_the_ID(), 'GCEP_tipo_plano', true );
-			$desc      = get_post_meta( get_the_ID(), 'GCEP_descricao_curta', true );
-			$cats      = wp_get_object_terms( get_the_ID(), 'gcep_categoria', [ 'fields' => 'names' ] );
-			$locs      = wp_get_object_terms( get_the_ID(), 'gcep_localizacao', [ 'fields' => 'names' ] );
-			$cat_label = ! empty( $cats ) ? $cats[0] : __( 'Anúncio local', 'guiawp-reset' );
-			$loc_label = ! empty( $locs ) ? implode( ', ', $locs ) : __( 'Local não informado', 'guiawp-reset' );
-		?>
-		<a href="<?php the_permalink(); ?>" class="group flex h-full flex-col overflow-hidden rounded-xl md:rounded-2xl border border-slate-200 bg-white shadow-[0_12px_40px_-28px_rgba(15,23,42,0.45)] ring-1 ring-white/70 transition-all duration-300 hover:-translate-y-1.5 hover:border-slate-300 hover:shadow-[0_22px_50px_-26px_rgba(15,23,42,0.38)]">
-			<div class="relative aspect-[3/2] overflow-hidden bg-slate-100">
-				<?php if ( has_post_thumbnail() ) : ?>
-					<?php the_post_thumbnail( 'gcep-card', [ 'class' => 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' ] ); ?>
-				<?php else : ?>
-					<div class="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-						<span class="material-symbols-outlined text-5xl text-slate-300">image</span>
-					</div>
-				<?php endif; ?>
-				<div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/20 to-transparent"></div>
-				<?php if ( 'premium' === $plano ) : ?>
-					<div class="absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-lg" style="background:var(--gcep-color-destaque, #22c55e)"><?php esc_html_e( 'Destaque', 'guiawp-reset' ); ?></div>
-				<?php endif; ?>
-			</div>
-			<div class="flex flex-1 flex-col p-5">
-				<span class="mb-2 inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em]" style="border-color:color-mix(in srgb,var(--gcep-color-primary) 30%,transparent);color:var(--gcep-color-primary)"><?php echo esc_html( $cat_label ); ?></span>
-				<h3 class="text-base font-black leading-tight text-slate-900 transition-colors group-hover:text-primary"><?php the_title(); ?></h3>
-				<?php if ( $desc ) : ?>
-					<p class="mt-2 text-sm leading-6 text-slate-500 line-clamp-2"><?php echo esc_html( $desc ); ?></p>
-				<?php endif; ?>
-				<div class="mt-auto pt-4">
-					<div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-slate-600">
-						<div class="min-w-0 flex items-center gap-2">
-							<span class="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-slate-100 text-slate-400">
-								<span class="material-symbols-outlined text-[18px]">location_on</span>
-							</span>
-							<span class="truncate text-xs text-slate-500"><?php echo esc_html( $loc_label ); ?></span>
-						</div>
-						<span class="gcep-arrow inline-flex h-9 w-9 flex-none items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400 transition-all">
-							<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-						</span>
-					</div>
-				</div>
-			</div>
-		</a>
-		<?php endwhile; ?>
+			$anuncio            = get_post();
+			$show_premium_badge = true;
+			include get_template_directory() . '/partials/card-anuncio.php';
+		endwhile; ?>
 	</div>
 
 	<!-- Paginação -->
@@ -280,9 +242,9 @@ $order_labels = [
 
 <script>
 (function () {
-	var cards = document.querySelectorAll('a.group');
+	var cards = document.querySelectorAll('.gcep-card-anuncio');
 	cards.forEach(function(card) {
-		var arrow = card.querySelector('.gcep-arrow');
+		var arrow = card.querySelector('.gcep-arrow-btn');
 		if (!arrow) return;
 		card.addEventListener('mouseenter', function() {
 			arrow.style.background  = 'var(--gcep-color-primary)';

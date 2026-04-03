@@ -8,12 +8,14 @@
 (function () {
 	'use strict';
 
-	const POLLING_INTERVAL = 4000;
+	const POLLING_INITIAL  = 3000;
+	const POLLING_MAX      = 30000;
 	const POLLING_TIMEOUT  = 30 * 60 * 1000;
 
-	let pollingTimer   = null;
-	let pollingTimeout = null;
-	let processando    = false;
+	let pollingTimer    = null;
+	let pollingTimeout  = null;
+	let pollingInterval = POLLING_INITIAL;
+	let processando     = false;
 
 	/* ── Elementos ───────────────────────────────────────── */
 
@@ -240,14 +242,20 @@
 
 	function startPolling(anuncioId) {
 		stopPolling();
+		pollingInterval = POLLING_INITIAL;
 
-		pollingTimer = setInterval(function () {
+		function poll() {
 			verificarPagamento(anuncioId);
-		}, POLLING_INTERVAL);
+			// Backoff exponencial: 3s → 6s → 12s → 24s → 30s (max)
+			pollingInterval = Math.min(pollingInterval * 2, POLLING_MAX);
+			pollingTimer = setTimeout(poll, pollingInterval);
+		}
+
+		pollingTimer = setTimeout(poll, pollingInterval);
 
 		pollingTimeout = setTimeout(function () {
 			stopPolling();
-			const pixStatus = els.pixStatus();
+			var pixStatus = els.pixStatus();
 			if (pixStatus) {
 				pixStatus.textContent = 'PIX expirado. Gere um novo codigo.';
 				pixStatus.classList.remove('text-amber-600');
@@ -257,7 +265,7 @@
 	}
 
 	function stopPolling() {
-		if (pollingTimer)   clearInterval(pollingTimer);
+		if (pollingTimer)   clearTimeout(pollingTimer);
 		if (pollingTimeout) clearTimeout(pollingTimeout);
 		pollingTimer   = null;
 		pollingTimeout = null;

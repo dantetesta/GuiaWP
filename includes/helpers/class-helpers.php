@@ -279,12 +279,13 @@ class GCEP_Helpers {
 		$post_ids  = get_transient( $cache_key );
 
 		if ( false === $post_ids ) {
-			// Busca apenas anuncios premium publicados em ordem aleatoria
+			// Busca IDs de premium publicados (limite razoável para shuffle em PHP)
 			$pagantes = new WP_Query( [
 				'post_type'              => 'gcep_anuncio',
 				'post_status'            => 'publish',
-				'posts_per_page'         => -1,
-				'orderby'                => 'rand',
+				'posts_per_page'         => $limit * 4,
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
 				'fields'                 => 'ids',
 				'ignore_sticky_posts'    => true,
 				'no_found_rows'          => true,
@@ -305,19 +306,19 @@ class GCEP_Helpers {
 			] );
 
 			$post_ids = $pagantes->posts;
+			shuffle( $post_ids );
 
-			// Se premium >= limite, sorteia apenas entre eles
 			if ( count( $post_ids ) >= $limit ) {
-				shuffle( $post_ids );
 				$post_ids = array_slice( $post_ids, 0, $limit );
 			} else {
-				// Complementa com gratuitos aleatorios ate atingir o limite
-				$falta    = $limit - count( $post_ids );
+				// Complementa com gratuitos até atingir o limite
+				$falta     = $limit - count( $post_ids );
 				$gratuitos = new WP_Query( [
 					'post_type'              => 'gcep_anuncio',
 					'post_status'            => 'publish',
-					'posts_per_page'         => $falta,
-					'orderby'                => 'rand',
+					'posts_per_page'         => $falta * 3,
+					'orderby'                => 'date',
+					'order'                  => 'DESC',
 					'post__not_in'           => ! empty( $post_ids ) ? $post_ids : [ 0 ],
 					'fields'                 => 'ids',
 					'ignore_sticky_posts'    => true,
@@ -332,7 +333,9 @@ class GCEP_Helpers {
 					],
 				] );
 
-				$post_ids = array_merge( $post_ids, $gratuitos->posts );
+				$extras = $gratuitos->posts;
+				shuffle( $extras );
+				$post_ids = array_merge( $post_ids, array_slice( $extras, 0, $falta ) );
 				shuffle( $post_ids );
 			}
 
@@ -341,15 +344,24 @@ class GCEP_Helpers {
 			set_transient( $cache_key, $post_ids, 15 * MINUTE_IN_SECONDS );
 		}
 
-		$posts = [];
-		foreach ( (array) $post_ids as $post_id ) {
-			$post = get_post( (int) $post_id );
-			if ( $post instanceof WP_Post && 'publish' === $post->post_status ) {
-				$posts[] = $post;
-			}
+		if ( empty( $post_ids ) ) {
+			return [];
 		}
 
-		return $posts;
+		// Buscar todos os posts de uma vez (elimina N+1)
+		$query = new WP_Query( [
+			'post_type'              => 'gcep_anuncio',
+			'post_status'            => 'publish',
+			'posts_per_page'         => count( $post_ids ),
+			'post__in'               => $post_ids,
+			'orderby'                => 'post__in',
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => true,
+			'update_post_term_cache' => true,
+		] );
+
+		return $query->posts;
 	}
 
 	public static function redirect_with_message( string $url, string $type, string $message ): void {

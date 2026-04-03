@@ -6,6 +6,7 @@
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.0.0 - 2026-03-11
  * @modified 1.9.2 - 2026-03-21 - Cards destaques redesenhados com layout do archive (badge categoria, descricao, localizacao, arrow btn)
+ * @modified 2.1.0 - 2026-03-28 - Cards extraidos para partial reutilizavel (partials/card-anuncio.php)
  */
 
 get_header();
@@ -36,16 +37,16 @@ $destaques = class_exists( 'GCEP_Helpers' ) ? GCEP_Helpers::get_featured_anuncio
 <section class="relative h-[420px] md:h-[600px] flex items-center justify-center overflow-hidden">
 	<div class="absolute inset-0 z-0">
 		<?php if ( $hero_imagem ) : ?>
-			<img src="<?php echo esc_url( $hero_imagem ); ?>" alt="" class="absolute inset-0 w-full h-full object-cover">
+			<img src="<?php echo esc_url( $hero_imagem ); ?>" alt="<?php echo esc_attr( $hero_titulo ); ?>" class="absolute inset-0 w-full h-full object-cover">
 		<?php else : ?>
 			<div class="w-full h-full bg-[#0052cc]/20"></div>
 		<?php endif; ?>
 		<div class="absolute inset-0 z-10" style="background:linear-gradient(<?php echo esc_attr( $hero_ov_dir ); ?>,<?php echo esc_attr( $hero_ov_hex1 ); ?>,<?php echo esc_attr( $hero_ov_hex2 ); ?>)"></div>
 	</div>
 	<div class="relative z-20 max-w-4xl w-full px-4 sm:px-6 text-center">
-		<h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 md:mb-6 leading-tight">
+		<h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 md:mb-6 leading-tight">
 			<?php echo esc_html( $hero_titulo ); ?>
-		</h2>
+		</h1>
 		<p class="text-base md:text-xl text-white/90 mb-6 md:mb-10 font-medium"><?php echo esc_html( $hero_subtitulo ); ?></p>
 
 		<!-- Barra de busca -->
@@ -53,13 +54,13 @@ $destaques = class_exists( 'GCEP_Helpers' ) ? GCEP_Helpers::get_featured_anuncio
 			<!-- Linha 1 (mobile) / Col 1 (desktop): campo de texto -->
 			<div class="flex-1 flex items-center px-4 border-b md:border-b-0 md:border-r border-slate-100">
 				<span class="material-symbols-outlined text-slate-400 mr-2">search</span>
-				<input type="text" name="s" class="w-full border-0 focus:ring-0 text-slate-900 text-sm py-4" placeholder="<?php esc_attr_e( 'O que você procura?', 'guiawp-reset' ); ?>">
+				<input type="text" name="s" class="w-full border-0 focus:ring-0 text-slate-900 text-sm py-4" placeholder="<?php esc_attr_e( 'O que você procura?', 'guiawp-reset' ); ?>" aria-label="<?php esc_attr_e( 'Buscar profissionais e empresas', 'guiawp-reset' ); ?>">
 			</div>
 			<!-- Linha 2 (mobile): categorias + botão lado a lado | desktop: display:contents (transparente ao layout) -->
 			<div class="flex items-stretch gap-2 md:gap-0 md:contents">
 				<div class="flex-1 flex items-center px-4 md:border-r border-slate-100">
 					<span class="material-symbols-outlined text-slate-400 mr-2">category</span>
-					<select name="gcep_cat" class="w-full border-0 focus:ring-0 text-slate-900 text-sm py-4 bg-transparent">
+					<select name="gcep_cat" class="w-full border-0 focus:ring-0 text-slate-900 text-sm py-4 bg-transparent" aria-label="<?php esc_attr_e( 'Filtrar por categoria', 'guiawp-reset' ); ?>">
 						<option value=""><?php esc_html_e( 'Todas categorias', 'guiawp-reset' ); ?></option>
 						<?php if ( ! empty( $categorias ) && ! is_wp_error( $categorias ) ) : ?>
 							<?php foreach ( $categorias as $cat ) : ?>
@@ -127,52 +128,9 @@ $destaques = class_exists( 'GCEP_Helpers' ) ? GCEP_Helpers::get_featured_anuncio
 		</div>
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
 			<?php foreach ( $destaques as $anuncio ) :
-				$desc      = get_post_meta( $anuncio->ID, 'GCEP_descricao_curta', true );
-				$plano     = get_post_meta( $anuncio->ID, 'GCEP_tipo_plano', true );
-				$cat_terms = wp_get_object_terms( $anuncio->ID, 'gcep_categoria' );
-				$locs      = wp_get_object_terms( $anuncio->ID, 'gcep_localizacao', [ 'fields' => 'names' ] );
-				$cat_obj   = ! is_wp_error( $cat_terms ) && ! empty( $cat_terms ) ? $cat_terms[0] : null;
-				$cat_label = $cat_obj ? $cat_obj->name : __( 'Anúncio local', 'guiawp-reset' );
-				$loc_label = ! empty( $locs ) ? implode( ', ', $locs ) : __( 'Local não informado', 'guiawp-reset' );
-			?>
-			<a href="<?php echo esc_url( get_permalink( $anuncio->ID ) ); ?>" class="gcep-destaque-card group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1.5 hover:border-slate-300" style="box-shadow:0 12px 40px -28px rgba(15,23,42,0.45);ring:1px solid rgba(255,255,255,0.7);">
-				<!-- Imagem 3:2 -->
-				<div class="relative overflow-hidden bg-slate-100" style="aspect-ratio:3/2;">
-					<?php if ( has_post_thumbnail( $anuncio->ID ) ) : ?>
-						<?php echo get_the_post_thumbnail( $anuncio->ID, 'gcep-card', [ 'class' => 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' ] ); ?>
-					<?php else : ?>
-						<div class="w-full h-full flex items-center justify-center" style="background:linear-gradient(to bottom right,#f1f5f9,#e2e8f0);">
-							<span class="material-symbols-outlined text-5xl text-slate-300">image</span>
-						</div>
-					<?php endif; ?>
-					<div class="pointer-events-none absolute inset-x-0 bottom-0 h-16" style="background:linear-gradient(to top,rgba(15,23,42,0.2),transparent);"></div>
-					<?php if ( 'premium' === $plano ) : ?>
-						<div class="absolute left-3 top-3 rounded-full px-3 py-1 text-white shadow-lg" style="font-size:10px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;background:var(--gcep-color-destaque, #22c55e);"><?php esc_html_e( 'Destaque', 'guiawp-reset' ); ?></div>
-					<?php endif; ?>
-				</div>
-				<!-- Conteúdo -->
-				<div class="flex flex-1 flex-col p-4 md:p-5">
-					<span class="mb-2 inline-flex w-fit items-center rounded-full border px-2.5 py-0.5" style="font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;border-color:color-mix(in srgb,var(--gcep-color-primary) 30%,transparent);color:var(--gcep-color-primary);"><?php echo esc_html( $cat_label ); ?></span>
-					<h4 class="text-base md:text-lg font-black leading-tight text-slate-900 transition-colors group-hover:text-primary line-clamp-2"><?php echo esc_html( $anuncio->post_title ); ?></h4>
-					<?php if ( $desc ) : ?>
-						<p class="mt-2 text-sm leading-6 text-slate-500 line-clamp-2"><?php echo esc_html( $desc ); ?></p>
-					<?php endif; ?>
-					<div class="mt-auto pt-4">
-						<div class="flex items-center justify-between gap-3 border-t border-slate-100 pt-4 text-slate-600">
-							<div class="min-w-0 flex items-center gap-2 text-sm font-medium">
-								<span class="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-slate-100 text-slate-400">
-									<span class="material-symbols-outlined" style="font-size:18px;">location_on</span>
-								</span>
-								<span class="truncate text-xs text-slate-500"><?php echo esc_html( $loc_label ); ?></span>
-							</div>
-							<span class="gcep-arrow-btn inline-flex h-9 w-9 flex-none items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400 transition-all">
-								<span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>
-							</span>
-						</div>
-					</div>
-				</div>
-			</a>
-			<?php endforeach; ?>
+				$show_premium_badge = true;
+				include get_template_directory() . '/partials/card-anuncio.php';
+			endforeach; ?>
 		</div>
 	</div>
 </section>
@@ -318,9 +276,9 @@ if ( ! empty( $posts_blog ) ) :
 <?php endif; ?>
 
 <script>
-// Hover do botão arrow nos cards de destaque
+// Hover do botao arrow nos cards de anuncio
 (function(){
-	var cards = document.querySelectorAll('.gcep-destaque-card');
+	var cards = document.querySelectorAll('.gcep-card-anuncio');
 	cards.forEach(function(card) {
 		var arrow = card.querySelector('.gcep-arrow-btn');
 		if (!arrow) return;
@@ -328,13 +286,11 @@ if ( ! empty( $posts_blog ) ) :
 			arrow.style.background = 'var(--gcep-color-primary)';
 			arrow.style.borderColor = 'transparent';
 			arrow.style.color = '#fff';
-			card.style.boxShadow = '0 22px 50px -26px rgba(15,23,42,0.38)';
 		});
 		card.addEventListener('mouseleave', function() {
 			arrow.style.background = '';
 			arrow.style.borderColor = '';
 			arrow.style.color = '';
-			card.style.boxShadow = '0 12px 40px -28px rgba(15,23,42,0.45)';
 		});
 	});
 })();

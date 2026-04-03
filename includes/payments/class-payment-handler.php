@@ -58,8 +58,8 @@ class GCEP_Payment_Handler {
 		}
 
 		$anuncio_id = absint( $_POST['anuncio_id'] ?? 0 );
-		$metodo     = sanitize_text_field( $_POST['metodo'] ?? 'pix' );
-		$cpf        = sanitize_text_field( $_POST['cpf'] ?? '' );
+		$metodo     = sanitize_text_field( wp_unslash( $_POST['metodo'] ?? 'pix' ) );
+		$cpf        = sanitize_text_field( wp_unslash( $_POST['cpf'] ?? '' ) );
 
 		if ( $anuncio_id <= 0 || empty( $cpf ) ) {
 			wp_send_json_error( [ 'message' => 'Dados incompletos.' ] );
@@ -91,20 +91,9 @@ class GCEP_Payment_Handler {
 
 		if ( 'pix' === $metodo ) {
 			$resultado = $gateway->criar_cobranca_pix( $dados_base );
-		} elseif ( in_array( $metodo, [ 'credit_card', 'debit_card' ], true ) ) {
-			if ( ! $gateway->suporta_cartao() ) {
-				wp_send_json_error( [ 'message' => 'Gateway ativo nao suporta cartao.' ] );
-			}
-			$dados_base['cartao'] = [
-				'numero'  => sanitize_text_field( $_POST['cartao_numero'] ?? '' ),
-				'mes'     => sanitize_text_field( $_POST['cartao_mes'] ?? '' ),
-				'ano'     => sanitize_text_field( $_POST['cartao_ano'] ?? '' ),
-				'cvv'     => sanitize_text_field( $_POST['cartao_cvv'] ?? '' ),
-				'titular' => sanitize_text_field( $_POST['cartao_titular'] ?? '' ),
-			];
-			$resultado = $gateway->criar_cobranca_cartao( $dados_base );
 		} else {
-			wp_send_json_error( [ 'message' => 'Metodo de pagamento invalido.' ] );
+			// Cartão desabilitado — tokenização deve ser feita no client-side (MercadoPago.js)
+			wp_send_json_error( [ 'message' => __( 'Método de pagamento indisponível. Use PIX.', 'guiawp' ) ] );
 			return;
 		}
 
@@ -118,11 +107,6 @@ class GCEP_Payment_Handler {
 			update_post_meta( $anuncio_id, 'GCEP_gateway_payment_id', $gateway_id );
 			update_post_meta( $anuncio_id, 'GCEP_gateway_nome', $gateway->get_id() );
 			update_post_meta( $anuncio_id, 'GCEP_gateway_metodo', $metodo );
-		}
-
-		// Cartao aprovado na hora? Confirmar pagamento
-		if ( in_array( $metodo, [ 'credit_card', 'debit_card' ], true ) && ! empty( $resultado['aprovado'] ) ) {
-			self::confirm_payment( $anuncio_id );
 		}
 
 		wp_send_json_success( $resultado );
@@ -141,6 +125,12 @@ class GCEP_Payment_Handler {
 		$anuncio_id = absint( $_POST['anuncio_id'] ?? 0 );
 		if ( $anuncio_id <= 0 ) {
 			wp_send_json_error( [ 'message' => 'Anuncio invalido.' ] );
+		}
+
+		// Verificar propriedade do anúncio
+		$post = get_post( $anuncio_id );
+		if ( ! $post || ( (int) $post->post_author !== get_current_user_id() && ! current_user_can( 'manage_options' ) ) ) {
+			wp_send_json_error( [ 'message' => 'Permissao negada.' ] );
 		}
 
 		// Ja confirmado localmente?

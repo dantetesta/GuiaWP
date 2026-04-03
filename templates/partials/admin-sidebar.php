@@ -94,7 +94,7 @@ $menu_items = [
 				<p class="text-[13px] font-bold text-slate-800 truncate"><?php echo esc_html( $user->display_name ); ?></p>
 				<p class="text-[11px] text-slate-400"><?php esc_html_e( 'Administrador', 'guiawp' ); ?></p>
 			</div>
-			<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=gcep_logout' ) ); ?>" class="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors" title="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>">
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gcep_logout' ), 'gcep_logout' ) ); ?>" class="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors" title="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>">
 				<span class="material-symbols-outlined text-[18px]">logout</span>
 			</a>
 		</div>

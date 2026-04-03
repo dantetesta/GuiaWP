@@ -61,9 +61,28 @@ class GCEP_Expiration {
 			return;
 		}
 
+		$expired_ids = array_map( 'intval', $expired_ids );
+
+		// Batch UPDATE no postmeta (1 query em vez de N)
+		$ids_placeholder = implode( ',', $expired_ids );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- IDs já são inteiros validados
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->postmeta} SET meta_value = %s WHERE meta_key = %s AND post_id IN ({$ids_placeholder})",
+				'expirado',
+				'GCEP_status_anuncio'
+			)
+		);
+
+		// Batch UPDATE no post_status (1 query em vez de N)
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query(
+			"UPDATE {$wpdb->posts} SET post_status = 'draft' WHERE ID IN ({$ids_placeholder})"
+		);
+
+		// Limpar cache dos posts afetados
 		foreach ( $expired_ids as $post_id ) {
-			update_post_meta( $post_id, 'GCEP_status_anuncio', 'expirado' );
-			GCEP_Helpers::sync_anuncio_post_status( (int) $post_id, 'expirado' );
+			clean_post_cache( $post_id );
 		}
 	}
 

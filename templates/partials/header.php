@@ -45,7 +45,6 @@ $primary_button = 'background-color:' . esc_attr( $cor_primaria ) . ';';
 	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 	<style>:root{--gcep-color-primaria:<?php echo esc_attr( $cor_primaria ); ?>;--gcep-color-primary:<?php echo esc_attr( $cor_primaria ); ?>;--gcep-color-secundaria:<?php echo esc_attr( $cor_secundaria ); ?>;--gcep-color-destaque:<?php echo esc_attr( $cor_destaque ); ?>;--gcep-color-fundo:<?php echo esc_attr( $cor_fundo ); ?>;--gcep-color-texto:<?php echo esc_attr( $cor_texto ); ?>;--gcep-color-rodape:<?php echo esc_attr( $cor_rodape ); ?>;--gcep-color-fundo-categorias:<?php echo esc_attr( $cor_fundo_categorias ); ?>;}</style>
 	<?php wp_head(); ?>
-	<title><?php wp_title( '|', true, 'right' ); ?><?php echo esc_html( $nome_guia ); ?></title>
 </head>
 <body class="<?php echo esc_attr( $body_classes ); ?>">
 
@@ -91,7 +90,7 @@ $primary_button = 'background-color:' . esc_attr( $cor_primaria ) . ';';
 					<span class="md:hidden"><?php esc_html_e( 'Painel', 'guiawp' ); ?></span>
 					<span class="hidden md:inline"><?php esc_html_e( 'Meu Painel', 'guiawp' ); ?></span>
 				</a>
-				<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=gcep_logout' ) ); ?>" class="hidden sm:inline-flex w-11 h-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-500 transition-all" title="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>">
+				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gcep_logout' ), 'gcep_logout' ) ); ?>" class="hidden sm:inline-flex w-11 h-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-500 transition-all" title="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp' ); ?>">
 					<span class="material-symbols-outlined text-[20px]">logout</span>
 				</a>
 			<?php else : ?>
@@ -151,7 +150,7 @@ $primary_button = 'background-color:' . esc_attr( $cor_primaria ) . ';';
 				<span class="material-symbols-outlined text-[18px]">dashboard</span>
 				<?php esc_html_e( 'Painel', 'guiawp' ); ?>
 			</a>
-			<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=gcep_logout' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gcep_logout' ), 'gcep_logout' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
 				<span class="material-symbols-outlined text-[18px]">logout</span>
 				<?php esc_html_e( 'Sair', 'guiawp' ); ?>
 			</a>
@@ -172,8 +171,19 @@ $primary_button = 'background-color:' . esc_attr( $cor_primaria ) . ';';
 	var overlay = document.getElementById('gcep-mobile-menu-overlay');
 	var close = document.getElementById('gcep-mobile-menu-close');
 	if(!toggle||!menu||!overlay||!close) return;
-	function openMenu(){ menu.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); document.body.style.overflow='hidden'; }
-	function closeMenu(){ menu.classList.add('translate-x-full'); overlay.classList.add('hidden'); document.body.style.overflow=''; }
+	function openMenu(){
+		menu.classList.remove('translate-x-full');
+		overlay.classList.remove('hidden');
+		document.body.style.overflow='hidden';
+		if(window.gcepFocusTrap){window.gcepFocusTrap.activate(menu, closeMenu);}
+	}
+	function closeMenu(){
+		menu.classList.add('translate-x-full');
+		overlay.classList.add('hidden');
+		document.body.style.overflow='';
+		if(window.gcepFocusTrap){window.gcepFocusTrap.deactivate();}
+		toggle.focus();
+	}
 	toggle.addEventListener('click', openMenu);
 	close.addEventListener('click', closeMenu);
 	overlay.addEventListener('click', closeMenu);

@@ -97,9 +97,10 @@ class GCEP_Map_Handler {
 			$post_ids[] = $post->ID;
 		}
 
-		// Pre-carregar todo o meta de todos os posts em uma unica query
+		// Pre-carregar meta e terms de todos os posts em batch (elimina N+1)
 		if ( ! empty( $post_ids ) ) {
 			update_meta_cache( 'post', $post_ids );
+			update_object_term_cache( $post_ids, 'gcep_anuncio' );
 		}
 
 		foreach ( $query->posts as $post ) {

@@ -14,6 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class GCEP_Settings {
 
+	/** Cache estático — evita desserializar a option em cada chamada */
+	private static ?array $cache = null;
+
 	private static array $defaults = [
 		'nome_guia'           => 'GuiaWP',
 		'telefone_principal'  => '',
@@ -99,8 +102,15 @@ class GCEP_Settings {
 		'auth_turnstile_secret_key'=> '',
 	];
 
+	private static function load(): array {
+		if ( null === self::$cache ) {
+			self::$cache = get_option( 'gcep_settings', [] );
+		}
+		return self::$cache;
+	}
+
 	public static function get( string $key, $default = null ) {
-		$settings = get_option( 'gcep_settings', [] );
+		$settings = self::load();
 		if ( null !== $default ) {
 			return $settings[ $key ] ?? $default;
 		}
@@ -108,13 +118,14 @@ class GCEP_Settings {
 	}
 
 	public static function get_all(): array {
-		return wp_parse_args( get_option( 'gcep_settings', [] ), self::$defaults );
+		return wp_parse_args( self::load(), self::$defaults );
 	}
 
 	public static function update( string $key, $value ): void {
-		$settings = get_option( 'gcep_settings', [] );
+		$settings = self::load();
 		$settings[ $key ] = $value;
 		update_option( 'gcep_settings', $settings );
+		self::$cache = $settings;
 	}
 
 	// Campos que armazenam URLs
@@ -171,5 +182,6 @@ class GCEP_Settings {
 			}
 		}
 		update_option( 'gcep_settings', $settings );
+		self::$cache = $settings;
 	}
 }

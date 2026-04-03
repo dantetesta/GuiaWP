@@ -7,6 +7,7 @@
  * @since 1.0.0 - 2026-03-11
  * @modified 1.1.0 - 2026-03-11 - Galeria fotos, vídeos embed, CNPJ, novas redes sociais, descrição longa
  * @modified 1.9.9 - 2026-03-22 - Cores dinâmicas via CSS variables no link de categorias
+ * @modified 2.1.0 - 2026-03-29 - Focus trap no lightbox de mídia para acessibilidade
  */
 
 $post_id         = get_the_ID();
@@ -211,14 +212,14 @@ $video_chunks = array_chunk( $video_items, 2 );
 			<!-- Sobre: Premium exibe apenas descrição longa, Grátis exibe apenas descrição curta -->
 			<?php if ( $is_premium && $meta['GCEP_descricao_longa'] ) : ?>
 			<section>
-				<h3 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Sobre', 'guiawp-reset' ); ?></h3>
+				<h2 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Sobre', 'guiawp-reset' ); ?></h2>
 				<div class="prose prose-lg max-w-none text-slate-600 leading-relaxed">
 					<?php echo GCEP_AI_Validator::sanitize_description_html( (string) $meta['GCEP_descricao_longa'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</div>
 			</section>
 			<?php elseif ( ! $is_premium && $meta['GCEP_descricao_curta'] ) : ?>
 			<section>
-				<h3 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Sobre', 'guiawp-reset' ); ?></h3>
+				<h2 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Sobre', 'guiawp-reset' ); ?></h2>
 				<div class="prose prose-lg max-w-none text-slate-600 leading-relaxed font-medium">
 					<p><?php echo esc_html( $meta['GCEP_descricao_curta'] ); ?></p>
 				</div>
@@ -229,7 +230,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 			<?php if ( $is_premium && ! empty( $gallery_items ) ) : ?>
 			<section>
 				<div class="flex items-center justify-between gap-4 mb-6">
-					<h3 class="text-2xl font-extrabold tracking-tight"><?php esc_html_e( 'Galeria de Fotos', 'guiawp-reset' ); ?></h3>
+					<h2 class="text-2xl font-extrabold tracking-tight"><?php esc_html_e( 'Galeria de Fotos', 'guiawp-reset' ); ?></h2>
 					<?php if ( count( $gallery_chunks ) > 1 ) : ?>
 					<div class="hidden sm:flex items-center gap-2 text-sm text-slate-400">
 						<span class="material-symbols-outlined text-base">photo_library</span>
@@ -274,7 +275,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 			<!-- Galeria de Vídeos (premium) -->
 			<?php if ( $is_premium && ! empty( $video_items ) ) : ?>
 			<section>
-				<h3 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Vídeos', 'guiawp-reset' ); ?></h3>
+				<h2 class="text-2xl font-extrabold mb-6 tracking-tight"><?php esc_html_e( 'Vídeos', 'guiawp-reset' ); ?></h2>
 				<?php if ( 1 === count( $video_items ) ) :
 					$single_video = $video_items[0];
 				?>
@@ -341,7 +342,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 				<section id="gcep-location-section" class="scroll-mt-28">
 					<div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
 						<div>
-							<h3 class="text-2xl font-extrabold tracking-tight"><?php esc_html_e( 'Localização', 'guiawp-reset' ); ?></h3>
+							<h2 class="text-2xl font-extrabold tracking-tight"><?php esc_html_e( 'Localização', 'guiawp-reset' ); ?></h2>
 						<p class="text-sm text-slate-500 mt-2 font-medium"><?php echo esc_html( $meta['GCEP_endereco_completo'] ); ?></p>
 					</div>
 					<div class="flex flex-col sm:flex-row gap-3">
@@ -474,7 +475,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 		if ( ! empty( $related ) ) :
 	?>
 	<section class="mt-12 md:mt-20">
-		<h3 class="text-xl md:text-2xl font-extrabold mb-6 md:mb-8 tracking-tight"><?php esc_html_e( 'Anúncios Relacionados', 'guiawp-reset' ); ?></h3>
+		<h2 class="text-xl md:text-2xl font-extrabold mb-6 md:mb-8 tracking-tight"><?php esc_html_e( 'Anúncios Relacionados', 'guiawp-reset' ); ?></h2>
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
 			<?php foreach ( $related as $rel ) :
 				$rel_desc = get_post_meta( $rel->ID, 'GCEP_descricao_curta', true );
@@ -703,7 +704,8 @@ $video_chunks = array_chunk( $video_items, 2 );
 	var lightboxNext = document.getElementById('gcep-lightbox-next');
 	var lightboxState = {
 		group: '',
-		index: 0
+		index: 0,
+		trigger: null
 	};
 
 	function getLightboxItems() {
@@ -760,6 +762,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 		lightbox.classList.remove('hidden');
 		lightbox.classList.add('flex');
 		document.body.classList.add('overflow-hidden');
+		if (window.gcepFocusTrap) { window.gcepFocusTrap.activate(lightbox, closeLightbox); }
 	}
 
 	function closeLightbox() {
@@ -774,6 +777,8 @@ $video_chunks = array_chunk( $video_items, 2 );
 		if (lightboxBody) {
 			lightboxBody.innerHTML = '';
 		}
+		if (window.gcepFocusTrap) { window.gcepFocusTrap.deactivate(); }
+		if (lightboxState.trigger) { lightboxState.trigger.focus(); }
 	}
 
 	function moveLightbox(step) {
@@ -792,6 +797,7 @@ $video_chunks = array_chunk( $video_items, 2 );
 		trigger.addEventListener('click', function(){
 			var group = trigger.getAttribute('data-lightbox-group') || '';
 			var index = Number(trigger.getAttribute('data-lightbox-index') || 0);
+			lightboxState.trigger = trigger;
 			openLightbox(group, index);
 		});
 	});

@@ -42,8 +42,15 @@ class GCEP_Plans {
 			return;
 		}
 
-		// dbDelta tambem atualiza colunas/indices quando a tabela ja existe.
+		// Verificar via option — só executa dbDelta na ativação/upgrade
+		$installed = get_option( 'gcep_plans_table_version', '' );
+		if ( '1.0' === $installed ) {
+			self::$table_synced = true;
+			return;
+		}
+
 		self::create_table();
+		update_option( 'gcep_plans_table_version', '1.0', false );
 		self::$table_synced = true;
 	}
 

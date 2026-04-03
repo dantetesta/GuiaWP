@@ -130,6 +130,31 @@ class GCEP_Anuncio_Custom_Scripts {
 		return $post_id;
 	}
 
+	/**
+	 * Domínios confiáveis para scripts externos (pixels, analytics, etc.)
+	 *
+	 * @author Dante Testa <https://dantetesta.com.br>
+	 * @since 2.1.0 - 2026-03-28
+	 */
+	private static function get_allowed_script_domains(): array {
+		$defaults = [
+			'www.googletagmanager.com',
+			'googletagmanager.com',
+			'www.google-analytics.com',
+			'www.googleadservices.com',
+			'googleads.g.doubleclick.net',
+			'connect.facebook.net',
+			'snap.licdn.com',
+			'static.ads-twitter.com',
+			'analytics.tiktok.com',
+			'cdn.jsdelivr.net',
+			'pagead2.googlesyndication.com',
+			'www.clarity.ms',
+			'static.hotjar.com',
+		];
+		return (array) apply_filters( 'gcep_allowed_script_domains', $defaults );
+	}
+
 	private static function sanitize_script_snippet( string $value ): string {
 		$value = wp_unslash( $value );
 		$value = str_replace( [ "\0", '<?php', '<?', '?>' ], '', $value );
@@ -139,6 +164,40 @@ class GCEP_Anuncio_Custom_Scripts {
 			return '';
 		}
 
-		return mb_substr( $value, 0, 20000 );
+		// Admins podem salvar qualquer script (confiança total)
+		if ( current_user_can( 'manage_options' ) ) {
+			return mb_substr( $value, 0, 20000 );
+		}
+
+		// Anunciantes: apenas <script> e <noscript> com src de domínios confiáveis
+		$allowed_domains = self::get_allowed_script_domains();
+		$sanitized_parts = [];
+
+		// Extrair e validar cada tag <script>
+		if ( preg_match_all( '/<script\b[^>]*>.*?<\/script>/is', $value, $matches ) ) {
+			foreach ( $matches[0] as $tag ) {
+				if ( preg_match( '/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $tag, $src_match ) ) {
+					$src_host = wp_parse_url( $src_match[1], PHP_URL_HOST );
+					if ( $src_host && in_array( $src_host, $allowed_domains, true ) ) {
+						$sanitized_parts[] = $tag;
+					}
+				}
+				// Scripts inline sem src: bloquear para anunciantes
+			}
+		}
+
+		// Permitir <noscript> com conteúdo seguro (img pixels)
+		if ( preg_match_all( '/<noscript\b[^>]*>.*?<\/noscript>/is', $value, $ns_matches ) ) {
+			foreach ( $ns_matches[0] as $ns_tag ) {
+				$sanitized_parts[] = wp_kses( $ns_tag, [
+					'noscript' => [],
+					'img'      => [ 'src' => true, 'alt' => true, 'width' => true, 'height' => true, 'style' => true ],
+				] );
+			}
+		}
+
+		$result = implode( "\n", $sanitized_parts );
+
+		return mb_substr( $result, 0, 20000 );
 	}
 }

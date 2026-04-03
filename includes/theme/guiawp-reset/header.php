@@ -6,6 +6,7 @@
  * @author Dante Testa <https://dantetesta.com.br>
  * @since 1.0.0 - 2026-03-11
  * @modified 1.9.6 - 2026-03-22 - Corrige cores hardcoded: substitui #0052cc por variável --gcep-color-primary
+ * @modified 2.1.0 - 2026-03-29 - Focus trap e Escape no menu mobile para acessibilidade
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -65,7 +66,7 @@ $blog_url      = home_url( '/blog' );
 					<span class="md:hidden"><?php esc_html_e( 'Painel', 'guiawp-reset' ); ?></span>
 					<span class="hidden md:inline"><?php esc_html_e( 'Meu Painel', 'guiawp-reset' ); ?></span>
 				</a>
-				<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=gcep_logout' ) ); ?>" class="hidden sm:inline-flex w-11 h-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-500 transition-all" title="<?php esc_attr_e( 'Sair', 'guiawp-reset' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp-reset' ); ?>">
+				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gcep_logout' ), 'gcep_logout' ) ); ?>" class="hidden sm:inline-flex w-11 h-11 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-500 transition-all" title="<?php esc_attr_e( 'Sair', 'guiawp-reset' ); ?>" aria-label="<?php esc_attr_e( 'Sair', 'guiawp-reset' ); ?>">
 					<span class="material-symbols-outlined text-[20px]">logout</span>
 				</a>
 			<?php else : ?>
@@ -121,7 +122,7 @@ $blog_url      = home_url( '/blog' );
 				<span class="material-symbols-outlined text-[18px]">dashboard</span>
 				<?php esc_html_e( 'Painel', 'guiawp-reset' ); ?>
 			</a>
-			<a href="<?php echo esc_url( admin_url( 'admin-post.php?action=gcep_logout' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
+			<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=gcep_logout' ), 'gcep_logout' ) ); ?>" class="flex w-full items-center justify-center gap-2 px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
 				<span class="material-symbols-outlined text-[18px]">logout</span>
 				<?php esc_html_e( 'Sair', 'guiawp-reset' ); ?>
 			</a>
@@ -142,8 +143,19 @@ $blog_url      = home_url( '/blog' );
 	var overlay = document.getElementById('gcep-theme-menu-overlay');
 	var close = document.getElementById('gcep-theme-menu-close');
 	if(!toggle||!menu||!overlay||!close) return;
-	function openMenu(){ menu.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); document.body.style.overflow='hidden'; }
-	function closeMenu(){ menu.classList.add('translate-x-full'); overlay.classList.add('hidden'); document.body.style.overflow=''; }
+	function openMenu(){
+		menu.classList.remove('translate-x-full');
+		overlay.classList.remove('hidden');
+		document.body.style.overflow='hidden';
+		if(window.gcepFocusTrap){window.gcepFocusTrap.activate(menu, closeMenu);}
+	}
+	function closeMenu(){
+		menu.classList.add('translate-x-full');
+		overlay.classList.add('hidden');
+		document.body.style.overflow='';
+		if(window.gcepFocusTrap){window.gcepFocusTrap.deactivate();}
+		toggle.focus();
+	}
 	toggle.addEventListener('click', openMenu);
 	close.addEventListener('click', closeMenu);
 	overlay.addEventListener('click', closeMenu);

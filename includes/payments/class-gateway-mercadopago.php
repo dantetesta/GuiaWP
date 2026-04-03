@@ -194,6 +194,12 @@ class GCEP_Gateway_MercadoPago extends GCEP_Gateway {
 		$body    = json_decode( $body_raw, true );
 		$data_id = (string) ( $body['data']['id'] ?? '' );
 
+		// Proteção contra replay: timestamp deve estar dentro de 10 minutos
+		$ts_int = (int) $ts;
+		if ( $ts_int > 0 && abs( time() - $ts_int ) > 600 ) {
+			return false;
+		}
+
 		$manifest = "id:{$data_id};request-id:{$x_request_id};ts:{$ts};";
 		$computed = hash_hmac( 'sha256', $manifest, $secret );
 
